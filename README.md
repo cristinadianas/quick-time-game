@@ -1,7 +1,9 @@
 # Robotica - Tema 3: Quick Time Game
 
 ## Descriere
-Fiecare jucător va avea butoane și LED-uri proprii, iar jocul se va desfășura în mai multe runde. Scopul fiecărui jucător este să apese cât mai rapid butonul care corespunde culorii afișate pe LED-ul RGB al echipei sale. Punctajul fiecărui jucător va fi afișat pe un ecran LCD și se va actualiza pe parcursul jocului. La finalul jocului, jucătorul cu cel mai mare punctaj este declarat câștigător. Cele 2 păci Arduino Uno comunică prin protocolul SPI. Placa master este responsabilă de controlarea LCD-ului și a game flow-ului, precum și a timer-ului reprezentat printr-un servomotor. Placa slave este responsabilă de inputuri (butoane) si de leduri.
+Fiecare jucător va avea butoane și LED-uri proprii, iar jocul se va desfășura în mai multe runde. Sistemul include două plăci Arduino care comunică prin SPI: una este master și coordonează jocul (LCD-ul, timerul cu servomotor și starea jocului), iar cealaltă este slave și gestionează inputurile (butoane) și LED-urile.
+
+Scopul fiecărui jucător este să apese cât mai rapid butonul care corespunde culorii afișate pe LED-ul RGB al echipei sale. Placa master trimite culoarea pentru fiecare tură, iar slave aprinde LED-ul corespunzător și așteaptă input. Scorul depinde de timpul de reacție: sub 0,3s, sub 0,6s sau sub 1s. Greșelile sau întârzierea peste 1s duc la 0 puncte, iar un buzzer semnalează erorile. La final, master calculează scorurile, anunță câștigătorul și revine la meniul principal pentru un nou joc.
 
 ## Componente
 * 6x LED-uri (2 grupuri de câte 3 leduri: albastru, verde si rosu)
