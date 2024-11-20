@@ -44,6 +44,8 @@ https://github.com/user-attachments/assets/718e43c8-c444-4bec-8dbf-1157481cb6ff
 ## Schema Electrică
 ![WhatsApp Image 2024-11-18 at 6 26 58 PM](https://github.com/user-attachments/assets/6be75af4-7395-41cc-96a4-96f9bcd5c313)
 <img width="867" alt="Screenshot 2024-11-19 at 8 34 32 PM" src="https://github.com/user-attachments/assets/72aea055-93ee-4455-9605-726f9204caea">
+![WhatsApp Image 2024-11-20 at 1 05 31 PM](https://github.com/user-attachments/assets/b6a0bfa5-8c9a-4e34-bb4b-e614dd925a88)
+
 
 
 
