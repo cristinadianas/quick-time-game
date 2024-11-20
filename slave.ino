@@ -1,168 +1,166 @@
 #include <SPI.h>
 
-volatile char command = '\0';
-volatile bool newCommand = false;
+volatile char comanda = '\0';
+volatile bool comandaNoua = false;
 
-// Button pins for each color and each player
-const int player1ButtonRedPin = 4;
-const int player1ButtonGreenPin = A0;
-const int player1ButtonBluePin = 2;
+// Pini butoane pentru fiecare culoare si fiecare jucator
+const int pinButonRosuJucator1 = 4;
+const int pinButonVerdeJucator1 = A0;
+const int pinButonAlbastruJucator1 = 2;
 
-const int buzzerPin = 3;
+const int pinBuzzer = 3;
 
-const int player2ButtonRedPin = 5;
-const int player2ButtonGreenPin = 6;
-const int player2ButtonBluePin = 7;
+const int pinButonRosuJucator2 = 5;
+const int pinButonVerdeJucator2 = 6;
+const int pinButonAlbastruJucator2 = 7;
 
-// RGB LED pins for each color and each player
-const int player1RedLEDPin = 8;
-const int player1GreenLEDPin = 9;
-const int player1BlueLEDPin = A2;
+// LED RGB (pinii pentru fiecare culoare) si fiecare jucator
+const int pinLEDRosuJucator1 = 8;
+const int pinLEDVerdeJucator1 = 9;
+const int pinLEDAlbastruJucator1 = A2;
 
-const int player2RedLEDPin = A5;
-const int player2GreenLEDPin = A4;
-const int player2BlueLEDPin = A3;
+const int pinLEDRosuJucator2 = A5;
+const int pinLEDVerdeJucator2 = A4;
+const int pinLEDAlbastruJucator2 = A3;
 
-unsigned long pressStartTime = 0;
-bool waitingForPress = false;
-bool player1Turn = true;
+unsigned long momentApasare = 0;
+bool asteaptaApasare = false;
+bool randJucator1 = true;
 
 void setup() {
-  Serial.begin(115200);          // For debugging
-  SPCR |= bit(SPE);               // Enable SPI in slave mode
-  pinMode(MISO, OUTPUT);          // Set MISO as output for SPI
-  SPI.attachInterrupt();          // Enable SPI interrupt
+  Serial.begin(115200);
+  SPCR |= bit(SPE);               // SPI in modul slave
+  pinMode(MISO, OUTPUT);          // Seteaza MISO drept output pentru SPI
+  SPI.attachInterrupt();
   
-  // Initialize button pins as input with pull-up resistors
-  pinMode(player1ButtonRedPin, INPUT_PULLUP);
-  pinMode(player1ButtonGreenPin, INPUT_PULLUP);
-  pinMode(player1ButtonBluePin, INPUT_PULLUP);
-  pinMode(player2ButtonRedPin, INPUT_PULLUP);
-  pinMode(player2ButtonGreenPin, INPUT_PULLUP);
-  pinMode(player2ButtonBluePin, INPUT_PULLUP);
+  pinMode(pinButonRosuJucator1, INPUT_PULLUP);
+  pinMode(pinButonVerdeJucator1, INPUT_PULLUP);
+  pinMode(pinButonAlbastruJucator1, INPUT_PULLUP);
+  pinMode(pinButonRosuJucator2, INPUT_PULLUP);
+  pinMode(pinButonVerdeJucator2, INPUT_PULLUP);
+  pinMode(pinButonAlbastruJucator2, INPUT_PULLUP);
 
-  // Initialize LED pins as outputs
-  pinMode(player1RedLEDPin, OUTPUT);
-  pinMode(player1GreenLEDPin, OUTPUT);
-  pinMode(player1BlueLEDPin, OUTPUT);
-  pinMode(player2RedLEDPin, OUTPUT);
-  pinMode(player2GreenLEDPin, OUTPUT);
-  pinMode(player2BlueLEDPin, OUTPUT);
+  pinMode(pinLEDRosuJucator1, OUTPUT);
+  pinMode(pinLEDVerdeJucator1, OUTPUT);
+  pinMode(pinLEDAlbastruJucator1, OUTPUT);
+  pinMode(pinLEDRosuJucator2, OUTPUT);
+  pinMode(pinLEDVerdeJucator2, OUTPUT);
+  pinMode(pinLEDAlbastruJucator2, OUTPUT);
 }
 
-// SPI interrupt service routine
+
 ISR(SPI_STC_vect) {
-  char receivedChar = SPDR;
-  if (receivedChar != '#') {
-    command = receivedChar;
-    newCommand = true;
+  char charPrimit = SPDR;
+  if (charPrimit != '#') {
+    comanda = charPrimit;
+    comandaNoua = true;
   }
 }
+
 
 void loop() {
-  if (newCommand) {
-    newCommand = false;
+  if (comandaNoua) {
+    comandaNoua = false;
 
-    if (command == 'r' || command == 'g' || command == 'b') {
-      startButtonChallenge(command);  // Start a new round with color
+    if (comanda == 'r' || comanda == 'g' || comanda == 'b') {
+      startButon(comanda);  // Incepe o noua runda cu culoarea primita
     } else {
-      SPDR = '$';  // Send default response for unrecognized commands
+      SPDR = '$';  // Comanda nerecunoscuta
     }
   }
 
-  if (waitingForPress) {
-    checkButtonResponse();
+  if (asteaptaApasare) {
+    verificaButonApasat();
   }
 }
 
-void startButtonChallenge(char color) {
+
+void startButon(char color) {
   Serial.print("Received: ");
   Serial.print((char)SPDR);
-  Serial.println(player1Turn ? " for p1" : " for p2");
-  pressStartTime = millis();
-  waitingForPress = true;
+  Serial.println(randJucator1 ? " for p1" : " for p2");
+  momentApasare = millis();
+  asteaptaApasare = true;
 
-  activateLED(color);  // Activate LED for the current player based on color
+  activateLED(color);  // Activeaza LED-ul pentru jucatorul curent in functie de culoarea primita
 }
 
-void checkButtonResponse() {
-  unsigned long elapsedTime = millis() - pressStartTime;
+
+void verificaButonApasat() {
+  unsigned long timpDeLaApasare = millis() - momentApasare;
   
-  int buttonPin;
-  if (player1Turn) {
-    buttonPin = (command == 'r') ? player1ButtonRedPin :
-                (command == 'g') ? player1ButtonGreenPin :
-                player1ButtonBluePin;
+  int pinButon;
+  if (randJucator1) {
+    pinButon = (comanda == 'r') ? pinButonRosuJucator1 :
+                (comanda == 'g') ? pinButonVerdeJucator1 :
+                pinButonAlbastruJucator1;
   } else {
-    buttonPin = (command == 'r') ? player2ButtonRedPin :
-                (command == 'g') ? player2ButtonGreenPin :
-                player2ButtonBluePin;
+    pinButon = (comanda == 'r') ? pinButonRosuJucator2 :
+                (comanda == 'g') ? pinButonVerdeJucator2 :
+                pinButonAlbastruJucator2;
   }
 
-  // Check for button press (correcting logic for INPUT_PULLUP)
-  if (digitalRead(buttonPin) == LOW) {  // Button is pressed when LOW due to INPUT_PULLUP
-    waitingForPress = false;
-    char score;
+  // Verifica apasarea butonului
+  if (digitalRead(pinButon) == LOW) {
+    asteaptaApasare = false;
+    char scor;
 
-    if (elapsedTime <= 300) {
-      score = 'a';  // Fast response
-    } else if (elapsedTime <= 600) {
-      score = 'b';  // Moderate response
-    } else if (elapsedTime <= 1000) {
-      score = 'c';  // Slow response
+    if (timpDeLaApasare <= 300) {
+      scor = 'a';  // Raspuns rapid
+    } else if (timpDeLaApasare <= 600) {
+      scor = 'b';  // Raspuns mediu
+    } else if (timpDeLaApasare <= 1000) {
+      scor = 'c';  // Rapuns incet
     } else {
-      score = 'i';  // Missed timing
+      scor = 'i';  // Ratat
     }
     
-    SPDR = score;  // Send score back via SPI
-    if(score != 'i')
-      tone(buzzerPin, 659, 200);
+    SPDR = scor;  // Trimite scorul prin SPI
+    if(scor != 'i')
+      tone(pinBuzzer, 659, 200);
 
-    resetLEDs();
-    player1Turn = !player1Turn;  // Switch player turns
-  } else if (elapsedTime > 900) {  // Timeout condition
-    waitingForPress = false;
-    SPDR = 'i';  // Send timeout indicator
-    resetLEDs();
-    player1Turn = !player1Turn;  // Switch player turns
+    reseteazaLEDurile();
+    randJucator1 = !randJucator1;  // Randul celuilalt jcator
+  } else if (timpDeLaApasare > 900) {
+    asteaptaApasare = false;
+    SPDR = 'i';
+    reseteazaLEDurile();
+    randJucator1 = !randJucator1;  // Randul celuilalt jucator
   }
   
-  // This part checks if buttons are pressed by either player incorrectly during the game
-  if((player1Turn && (digitalRead(player1ButtonBluePin) == LOW || digitalRead(player1ButtonRedPin) == LOW || digitalRead(player1ButtonGreenPin) == LOW))
+  if((randJucator1 && (digitalRead(pinButonAlbastruJucator1) == LOW || digitalRead(pinButonRosuJucator1) == LOW || digitalRead(pinButonVerdeJucator1) == LOW))
   ||
-    (!player1Turn && (digitalRead(player2ButtonBluePin) == LOW || digitalRead(player2ButtonRedPin) == LOW || digitalRead(player2ButtonGreenPin) == LOW))) {
+    (!randJucator1 && (digitalRead(pinButonAlbastruJucator2) == LOW || digitalRead(pinButonRosuJucator2) == LOW || digitalRead(pinButonVerdeJucator2) == LOW))) {
     
-    tone(buzzerPin, 220, 200);  // Wrong button press (button is pressed when it shouldn't be)
-    resetLEDs();
+    tone(pinBuzzer, 220, 200);  // Buton apasat gresit
+    reseteazaLEDurile();
   }
 }
-
-
-  
 
 
 void activateLED(char color) {
-  resetLEDs();  // Ensure other LEDs are off
+  reseteazaLEDurile();
   int ledPin;
   
-  if (player1Turn) {
-    ledPin = (color == 'r') ? player1RedLEDPin :
-             (color == 'g') ? player1GreenLEDPin :
-             player1BlueLEDPin;
+  if (randJucator1) {
+    ledPin = (color == 'r') ? pinLEDRosuJucator1 :
+             (color == 'g') ? pinLEDVerdeJucator1 :
+             pinLEDAlbastruJucator1;
   } else {
-    ledPin = (color == 'r') ? player2RedLEDPin :
-             (color == 'g') ? player2GreenLEDPin :
-             player2BlueLEDPin;
+    ledPin = (color == 'r') ? pinLEDRosuJucator2 :
+             (color == 'g') ? pinLEDVerdeJucator2 :
+             pinLEDAlbastruJucator2;
   }
 
-  digitalWrite(ledPin, HIGH);  // Turn on the appropriate color LED for the player
+  digitalWrite(ledPin, HIGH);
 }
 
-void resetLEDs() {
-  digitalWrite(player1RedLEDPin, LOW);
-  digitalWrite(player1GreenLEDPin, LOW);
-  digitalWrite(player1BlueLEDPin, LOW);
-  digitalWrite(player2RedLEDPin, LOW);
-  digitalWrite(player2GreenLEDPin, LOW);
-  digitalWrite(player2BlueLEDPin, LOW);
+
+void reseteazaLEDurile() {
+  digitalWrite(pinLEDRosuJucator1, LOW);
+  digitalWrite(pinLEDVerdeJucator1, LOW);
+  digitalWrite(pinLEDAlbastruJucator1, LOW);
+  digitalWrite(pinLEDRosuJucator2, LOW);
+  digitalWrite(pinLEDVerdeJucator2, LOW);
+  digitalWrite(pinLEDAlbastruJucator2, LOW);
 }
